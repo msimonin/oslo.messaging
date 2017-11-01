@@ -472,6 +472,7 @@ class RPCClient(_BaseCallContext):
         :type kwargs: dict
         :raises: MessagingTimeout, RemoteError, MessageDeliveryFailure
         """
+        import ipdb; ipdb.set_trace()
         return self.prepare().call(ctxt, method, **kwargs)
 
     def can_send_version(self, version=_marker):
