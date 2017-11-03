@@ -34,7 +34,9 @@ from oslo_messaging import _utils as utils
 from oslo_messaging import exceptions
 from oslo_messaging import serializer as msg_serializer
 from oslo_messaging import transport as msg_transport
+from oslo_utils import importutils
 
+from osprofiler import profiler
 
 LOG = logging.getLogger(__name__)
 
@@ -43,6 +45,8 @@ _client_opts = [
                default=60,
                help='Seconds to wait for a response from a call.'),
 ]
+
+profiler = importutils.try_import("osprofiler.profiler")
 
 
 class RemoteError(exceptions.MessagingException):
@@ -141,6 +145,9 @@ class _BaseCallContext(object):
                     "Version must contain a major and minor integer. Got %s"
                     % version)
 
+    @profiler.trace("rpc",
+                    info={},
+                    hide_args=False)
     def cast(self, ctxt, method, **kwargs):
         """Invoke a method and return immediately. See RPCClient.cast()."""
         msg = self._make_message(ctxt, method, kwargs)
@@ -153,6 +160,9 @@ class _BaseCallContext(object):
         except driver_base.TransportDriverError as ex:
             raise ClientSendError(self.target, ex)
 
+    @profiler.trace("rpc",
+                    info={},
+                    hide_args=False)
     def call(self, ctxt, method, **kwargs):
         """Invoke a method and wait for a reply. See RPCClient.call()."""
         if self.target.fanout:
@@ -420,6 +430,7 @@ class RPCClient(_BaseCallContext):
                  accept the request.
 
         """
+        import ipdb; ipdb.set_trace()
         self.prepare().cast(ctxt, method, **kwargs)
 
     def call(self, ctxt, method, **kwargs):
@@ -472,7 +483,6 @@ class RPCClient(_BaseCallContext):
         :type kwargs: dict
         :raises: MessagingTimeout, RemoteError, MessageDeliveryFailure
         """
-        import ipdb; ipdb.set_trace()
         return self.prepare().call(ctxt, method, **kwargs)
 
     def can_send_version(self, version=_marker):

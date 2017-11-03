@@ -38,6 +38,8 @@ from stevedore import driver
 from oslo_messaging._i18n import _LW
 from oslo_messaging import exceptions
 
+from osprofiler import profiler
+
 LOG = logging.getLogger(__name__)
 
 _transport_opts = [
@@ -121,6 +123,10 @@ class Transport(object):
     def _require_driver_features(self, requeue=False):
         self._driver.require_features(requeue=requeue)
 
+
+    @profiler.trace("rpc",
+                    info={},
+                    hide_args=False)
     def _send(self, target, ctxt, message, wait_for_reply=None, timeout=None,
               retry=None):
         if not target.topic:
